@@ -1,0 +1,33 @@
+CREATE DATABASE IF NOT EXISTS chat_backend CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE chat_backend;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name VARCHAR(120) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS chats (
+  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_low_id INT UNSIGNED NOT NULL,
+  user_high_id INT UNSIGNED NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_chats_user_pair (user_low_id, user_high_id),
+  CONSTRAINT fk_chats_low_user FOREIGN KEY (user_low_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT fk_chats_high_user FOREIGN KEY (user_high_id) REFERENCES users(id) ON DELETE CASCADE,
+  CONSTRAINT chk_chats_user_pair CHECK (user_low_id < user_high_id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS chat_members (
+  chat_id INT UNSIGNED NOT NULL,
+  user_id INT UNSIGNED NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (chat_id, user_id),
+  KEY ix_chat_members_user (user_id),
+  CONSTRAINT fk_chat_members_chat FOREIGN KEY (chat_id) REFERENCES chats(id) ON DELETE CASCADE,
+  CONSTRAINT fk_chat_members_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
